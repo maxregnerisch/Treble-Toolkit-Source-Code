@@ -36,12 +36,14 @@ jobs:
     - name: Create GSI Porter Package
       run: |
         mkdir GSI-Porter-S22Plus
-        copy "Treble Toolkit\bin\Release\*" GSI-Porter-S22Plus\
+        copy "Treble Toolkit\Release\*" GSI-Porter-S22Plus\
         copy "Treble Toolkit\samsung_s22_plus.png" GSI-Porter-S22Plus\
         echo "Samsung Galaxy S22 Plus GSI Porter" > GSI-Porter-S22Plus\README.txt
         echo "Device: SM-S906B" >> GSI-Porter-S22Plus\README.txt
         echo "Chipset: Samsung Exynos 2200" >> GSI-Porter-S22Plus\README.txt
         echo "Build Date: $(Get-Date)" >> GSI-Porter-S22Plus\README.txt
+        echo "Main Executable: gui.exe" >> GSI-Porter-S22Plus\README.txt
+        echo "Usage: Run gui.exe and navigate to Compatible Devices > Samsung Galaxy S22 Plus" >> GSI-Porter-S22Plus\README.txt
       shell: powershell
       
     - name: Upload GSI Porter Artifact
@@ -115,7 +117,21 @@ jobs:
           exit 1
         fi
         
+        if [ ! -f "./gsi-porter-test/gui.exe" ]; then
+          echo "ERROR: gui.exe (main executable) not found"
+          exit 1
+        fi
+        
+        if [ ! -f "./gsi-porter-test/samsung_s22_plus.png" ]; then
+          echo "ERROR: samsung_s22_plus.png (device image) not found"
+          exit 1
+        fi
+        
         echo "GSI Porter structure validation passed!"
+        echo "Found files:"
+        echo "- README.txt ✓"
+        echo "- gui.exe ✓" 
+        echo "- samsung_s22_plus.png ✓"
         
     - name: Create Test Report
       run: |
@@ -137,4 +153,3 @@ jobs:
         name: Test-Report-S22Plus-GSI-Porter
         path: test-report.md
         retention-days: 7
-
