@@ -95,6 +95,11 @@ namespace Treble_Toolkit
             Uri uri = new Uri("XiaomiPad5.xaml", UriKind.Relative);
             this.NavigationService.Navigate(uri);
         }
+        private void S22Plus_Click(object sender, RoutedEventArgs e)
+        {
+            Uri uri = new Uri("SamsungS22Plus.xaml", UriKind.Relative);
+            this.NavigationService.Navigate(uri);
+        }
         //Threading starts here -- 5/11/2021@22:07, YAG-dev, 21.12+
         private void Animate()
         {
