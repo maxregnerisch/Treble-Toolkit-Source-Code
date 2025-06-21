@@ -133,6 +133,11 @@
                 <ImageSource>xiaomipad5.png</ImageSource>
             </Button.Tag>
         </Button>
+        <Button x:Name="DeviceSpecificFeatures_Copy12" Content="Samsung Galaxy S22 Plus" Margin="0,0,0,364" VerticalAlignment="Bottom" Height="50" Style="{DynamicResource Button21.8.1Rev4}" Click="S22Plus_Click" Grid.Column="1" Grid.ColumnSpan="2">
+            <Button.Tag>
+                <ImageSource>samsung_s22_plus.png</ImageSource>
+            </Button.Tag>
+        </Button>
 
     </Grid>
 </Page>

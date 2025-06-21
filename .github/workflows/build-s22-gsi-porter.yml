@@ -1,0 +1,140 @@
+name: Build Samsung S22 Plus GSI Porter
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'Treble Toolkit/SamsungS22Plus*'
+      - '.github/workflows/build-s22-gsi-porter.yml'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'Treble Toolkit/SamsungS22Plus*'
+      - '.github/workflows/build-s22-gsi-porter.yml'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET Framework
+      uses: microsoft/setup-msbuild@v1.3
+      
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+      
+    - name: Restore NuGet packages
+      run: nuget restore "gui.sln"
+      
+    - name: Build Treble Toolkit with S22 Plus Support
+      run: msbuild "gui.sln" /p:Configuration=Release /p:Platform="Any CPU"
+      
+    - name: Create GSI Porter Package
+      run: |
+        mkdir GSI-Porter-S22Plus
+        copy "Treble Toolkit\bin\Release\*" GSI-Porter-S22Plus\
+        copy "Treble Toolkit\samsung_s22_plus.png" GSI-Porter-S22Plus\
+        echo "Samsung Galaxy S22 Plus GSI Porter" > GSI-Porter-S22Plus\README.txt
+        echo "Device: SM-S906B" >> GSI-Porter-S22Plus\README.txt
+        echo "Chipset: Samsung Exynos 2200" >> GSI-Porter-S22Plus\README.txt
+        echo "Build Date: $(Get-Date)" >> GSI-Porter-S22Plus\README.txt
+      shell: powershell
+      
+    - name: Upload GSI Porter Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Samsung-S22Plus-GSI-Porter
+        path: GSI-Porter-S22Plus/
+        retention-days: 30
+        
+    - name: Create Release (on tag)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          GSI-Porter-S22Plus/*
+        name: Samsung S22 Plus GSI Porter ${{ github.ref_name }}
+        body: |
+          ## Samsung Galaxy S22 Plus GSI Porter
+          
+          ### Device Information
+          - **Model**: SM-S906B
+          - **Chipset**: Samsung Exynos 2200
+          - **GSI Support**: A/B Treble Compatible
+          
+          ### Features
+          - Automatic GSI porting for Samsung S22 Plus
+          - Exynos 2200 chipset optimization
+          - OneUI compatibility layer
+          - Seamless A/B partition support
+          
+          ### Usage
+          1. Download and extract the GSI Porter
+          2. Run Treble Toolkit
+          3. Navigate to Compatible Devices → Samsung Galaxy S22 Plus
+          4. Click "GSI Porter Features"
+          5. Click "Port GSI for S22 Plus"
+          
+          ### Requirements
+          - Windows 10/11
+          - ADB and Fastboot tools
+          - Samsung S22 Plus (SM-S906B) with unlocked bootloader
+          
+          Built on: ${{ github.run_id }}
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-gsi-porter:
+    runs-on: ubuntu-latest
+    needs: build-windows
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Download GSI Porter Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Samsung-S22Plus-GSI-Porter
+        path: ./gsi-porter-test/
+        
+    - name: Validate GSI Porter Structure
+      run: |
+        echo "Validating GSI Porter structure..."
+        ls -la ./gsi-porter-test/
+        
+        # Check for required files
+        if [ ! -f "./gsi-porter-test/README.txt" ]; then
+          echo "ERROR: README.txt not found"
+          exit 1
+        fi
+        
+        echo "GSI Porter structure validation passed!"
+        
+    - name: Create Test Report
+      run: |
+        echo "# Samsung S22 Plus GSI Porter Test Report" > test-report.md
+        echo "" >> test-report.md
+        echo "## Build Information" >> test-report.md
+        echo "- Build ID: ${{ github.run_id }}" >> test-report.md
+        echo "- Commit: ${{ github.sha }}" >> test-report.md
+        echo "- Date: $(date)" >> test-report.md
+        echo "" >> test-report.md
+        echo "## Test Results" >> test-report.md
+        echo "- ✅ GSI Porter structure validation passed" >> test-report.md
+        echo "- ✅ Required files present" >> test-report.md
+        echo "- ✅ Build artifacts generated successfully" >> test-report.md
+        
+    - name: Upload Test Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: Test-Report-S22Plus-GSI-Porter
+        path: test-report.md
+        retention-days: 7
+
